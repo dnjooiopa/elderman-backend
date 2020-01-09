@@ -1,104 +1,75 @@
-const { parse } = require("json2csv");
-const fs = require("fs");
-const fetch = require("node-fetch");
+const tf = require("@tensorflow/tfjs-node");
+const csvtojson = require("csvtojson");
 
-// const { parse } = require("json2csv");
+function createModel() {
+    const model = tf.sequential();
+    model.add(
+        tf.layers.dense({
+            units: 64,
+            inputShape: 4,
+            activation: "sigmoid"
+        })
+    );
+    model.add(
+        tf.layers.dense({
+            units: 64,
+            activation: "relu"
+        })
+    );
+    model.add(
+        tf.layers.dense({
+            units: 4,
+            activation: "softmax"
+        })
+    );
 
-// const team = {
-//     "80:E1:26:00:5F:6A": ["team32",0],
-//     "80:E1:26:07:D6:C2": ["team14",1],
-//     "80:E1:26:07:CD:59": ["team11",2],
-//     "80:E1:25:00:D9:D7": ["team29",3]
-// };
+    model.compile({
+        optimizer: tf.train.adam(),
+        loss: "categoricalCrossentropy",
+        metrics: ["accuracy"]
+    });
+    return model;
+}
 
-const team = {
-    32: 0,
-    14: 1,
-    11: 2,
-    29: 3
+function str2array(s) {
+    d = s.replace("[", "");
+    d = d.replace("]", "");
+    d = d.split(",");
+    temp = d.map(e => Number(e));
+    return temp;
+}
+
+function processData(rawData) {
+    let xs = [];
+    let ys = [];
+    rawData.map(e => {
+        xs.push(str2array(e.feature));
+        ys.push(str2array(e.label));
+    });
+
+    return [xs, ys];
+}
+
+const saveModel = async model => {
+    try {
+        await model.save("file://./mymodel");
+    } catch (error) {
+        // Handle the error in here
+        console.log(error);
+    }
 };
 
-function saveCSV(csv) {
-    fs.writeFile("./data.csv", csv, function(err) {
-        if (err) {
-            return console.log(err);
-        }
-        console.log("The file was saved!");
+async function run() {
+    const rawData = await csvtojson().fromFile("dataset.csv");
+    const [xs, ys] = processData(rawData);
+    const model = await createModel();
+    const h = await model.fit(tf.tensor(xs), tf.tensor(ys), {
+        epochs: 20
     });
+    xv = [[86, 85, 77, 88]];
+    const yv = await model.predict(tf.tensor(xv));
+    yv.print();
+    await saveModel(model);
 }
 
-// function jsonToCSV(json) {
-//     myData = [];
-
-//     for (let i in json) {
-//         let lab =[0,0,0,0]
-//         lab[team[json[i].mac_addr][1]] = 1
-//         const row = {
-//             mac_addr: json[i].mac_addr,
-//             rssi: json[i].rssi,
-//             team: team[json[i].mac_addr][0],
-//             label: lab
-//         };
-//         myData.push(row);
-//     }
-
-//     const fields = ["mac_addr", "rssi", "team", "label"];
-//     const opts = { fields };
-
-//     try {
-//         const csv = parse(myData, opts);
-//         return csv;
-//     } catch (err) {
-//         console.error(err);
-//         return null;
-//     }
-// }
-
-async function processData(json) {
-    let data = { team32: [], team14: [], team11: [], team29: [] };
-    for (let i in json) {
-        let numTeam = json[i]["team"];
-        let team = "team" + String(numTeam);
-        let rssi = json[i]["rssi"];
-        data[team].push(rssi);
-    }
-    return data;
-}
-
-function jsonToCSV(json) {
-    let myData = [];
-
-    for (let i in json) {
-        let lab = [0, 0, 0, 0];
-        lab[team[json[i].team]] = 1;
-        const row = {
-            mac_addr: json[i].mac_addr,
-            rssi: json[i].rssi,
-            feature: [json[i].rssi],
-            team: json[i].team,
-            label: lab
-        };
-        myData.push(row);
-    }
-
-    const fields = ["mac_addr", "feature" ,"team", "label"];
-    const opts = { fields };
-
-    try {
-        const csv = parse(myData, opts);
-        return csv;
-    } catch (err) {
-        console.error(err);
-        return null;
-    }
-}
-
-async function getFirebase() {
-    const [data, csv] = await fetch("https://tesa-be0e8.firebaseio.com/rssi.json")
-        .then(res => res.json()) // expecting a json response
-        .then(json => [processData(json), jsonToCSV(json)]);
-    console.log(csv);
-    await saveCSV(csv)
-}
-
-module.exports = getFirebase;
+run();
