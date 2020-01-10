@@ -60,7 +60,7 @@ const saveModel = async model => {
 };
 
 async function run() {
-    const rawData = await csvtojson().fromFile("dataset.csv");
+    const rawData = await csvtojson().fromFile("data.csv");
     const [xs, ys] = processData(rawData);
     const model = await createModel();
     const h = await model.fit(tf.tensor(xs), tf.tensor(ys), {

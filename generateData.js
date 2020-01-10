@@ -5,20 +5,19 @@ function createCSV() {
     myData = [];
     for (let i = 0; i < 50; i++) {
         const row = {
-            mac_addr: "80:E1:25:00:D9:D7",
             feature: [
                 Math.floor(71 + Math.random() * 20),
                 Math.floor(71 + Math.random() * 20),
-                Math.floor(71 + Math.random() * 20),
-                Math.floor(46 + Math.random() * 25)
+                Math.floor(44 + Math.random() * 25),
+                Math.floor(71 + Math.random() * 20)
             ],
-            team: 29,
-            label: [0, 0, 0, 1]
+            team: 11,
+            label: [0, 0, 1, 0]
         };
         myData.push(row);
     }
 
-    const fields = ["mac_addr", "feature", "team", "label"];
+    const fields = ["feature", "team", "label"];
     const opts = { fields };
 
     try {
@@ -31,7 +30,7 @@ function createCSV() {
 }
 
 function saveCSV(csv) {
-    fs.writeFile("./dataset3.csv", csv, function(err) {
+    fs.writeFile("./data4.csv", csv, function(err) {
         if (err) {
             return console.log(err);
         }

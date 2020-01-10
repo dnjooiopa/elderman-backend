@@ -1,4 +1,13 @@
 {
+  "name": "elderman-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/dnjooiopa/elderman-backend.git",
+  "author": "dnjooiopa <dnjooiopa@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
     "@tensorflow/tfjs-node": "1.4.0",
     "body-parser": "^1.19.0",
@@ -6,11 +15,5 @@
     "express": "^4.17.1",
     "json2csv": "^4.5.4",
     "node-fetch": "^2.6.0"
-  },
-  "name": "elderman-backend",
-  "version": "1.0.0",
-  "main": "index.js",
-  "repository": "https://github.com/dnjooiopa/elderman-backend.git",
-  "author": "dnjooiopa <dnjooiopa@gmail.com>",
-  "license": "MIT"
+  }
 }
